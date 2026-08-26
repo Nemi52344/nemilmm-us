@@ -47,10 +47,11 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${plexMono.variable}`}
     >
       <body className="min-h-screen font-display text-ground antialiased">
-        {/* ⚠ REVIEW MODE — IP restriction is OFF so the page is viewable from
-            any region for content verification.
-            BEFORE LAUNCH: remove enabled={false} to re-arm the 404 block. */}
-        <GeoGate audience="us" enabled={false}>
+        {/* IP restriction ARMED: visitors whose IP resolves outside the U.S.
+            get the 404 screen instead of the offering. This is a client-side,
+            fail-open control — see components/GeoGate.tsx. The address gate at
+            the investment step remains the hard control. */}
+        <GeoGate audience="us">
           {children}
         </GeoGate>
         <NetlifyAddressForm />
