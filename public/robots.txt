@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Offering pages set their own noindex,nofollow via response metadata.
