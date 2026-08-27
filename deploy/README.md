@@ -125,3 +125,72 @@ Cloudflare gives country data with no server-side dependency, via a WAF custom
 rule (`ip.src.country ne "US"`) or a Worker returning the 404. It blocks before
 the request reaches this origin at all. That replaces steps 1–2; the vhost stays
 otherwise the same, minus the `if ($reg_d_blocked)` lines.
+
+---
+
+# Option B: Cloudflare header — no MaxMind account needed
+
+Use `deploy/nginx/invest-reg-d.cloudflare.conf` instead of the GeoIP2 vhost,
+and skip steps 1–2 entirely. No apt module, no MaxMind signup, no licence key,
+no database to keep updated.
+
+## 1. Move DNS to Cloudflare
+
+Add nemilmm.com to a free Cloudflare account. Cloudflare gives you two
+nameservers; replace GoDaddy's `ns65/ns66.domaincontrol.com` with them in the
+GoDaddy DNS settings. Propagation is usually under an hour.
+
+Make sure the `invest-reg-d` A record (13.205.20.121) is **Proxied** — the
+orange cloud, not grey. Grey means DNS-only and no `CF-IPCountry` header.
+
+## 2. Install the vhost
+
+```bash
+sudo cp deploy/nginx/invest-reg-d.cloudflare.conf \
+        /etc/nginx/sites-available/invest-reg-d.nemilmm.com.conf
+sudo ln -s /etc/nginx/sites-available/invest-reg-d.nemilmm.com.conf \
+           /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Certificate and file publishing are the same as steps 3–4 above.
+
+## 3. Lock the origin to Cloudflare — do not skip this
+
+`CF-IPCountry` is just a header. Anyone who hits 13.205.20.121 directly and
+sends `CF-IPCountry: US` walks straight through the gate. Only accept traffic
+from Cloudflare:
+
+```bash
+# EC2 security group: allow 443 only from Cloudflare's published ranges
+curl -s https://www.cloudflare.com/ips-v4
+curl -s https://www.cloudflare.com/ips-v6
+```
+
+Replace the existing 0.0.0.0/0 rule on 443 with those ranges. Until you do,
+this gate is decorative.
+
+## Verifying
+
+```bash
+# from a non-US address
+curl -s -o /dev/null -w '%{http_code}\n' https://invest-reg-d.nemilmm.com/   # 404
+curl -s https://invest-reg-d.nemilmm.com/ | grep -c "Regulation D"           # 0
+
+# confirm nginx is actually receiving a country
+sudo tail -f /var/log/nginx/invest-reg-d.access.log
+# each line shows [XX] — if it shows [] the record is not proxied
+```
+
+## Which option to pick
+
+|                        | GeoIP2 / MaxMind | Cloudflare header |
+| ---------------------- | ---------------- | ----------------- |
+| Account + licence key  | required         | none              |
+| nginx module           | required         | none              |
+| Database upkeep        | weekly refresh   | none              |
+| DNS change             | none             | move to Cloudflare|
+| Bypass risk            | none             | origin must be firewalled |
+
+If the MaxMind signup is the blocker, Option B is the better trade — provided
+step 3 is done.
