@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TopNav } from "@/components/TopNav";
+import { LeadGate } from "@/components/LeadGate";
 import { EligibilityNotice } from "@/components/EligibilityNotice";
 import { VisionSection } from "@/components/VisionSection";
 import { HowWeGetThere } from "@/components/HowWeGetThere";
@@ -77,6 +78,9 @@ export default function RegDPage() {
     <main className="lmm-slab w-full">
       {/* ---- Nav with CTA ---------------------------------------------------- */}
       <TopNav />
+
+      {/* Lead capture on arrival, over a frosted page */}
+      <LeadGate offering="reg-d" />
 
       {/* ---- Vision is the landing ------------------------------------------ */}
       <VisionSection offering="reg-d" />

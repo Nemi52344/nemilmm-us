@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { JurisdictionGate } from "./JurisdictionGate";
+import { PortalNotice } from "./PortalNotice";
 
 type Props = {
   offering: "reg-d" | "reg-s";
@@ -10,7 +10,7 @@ type Props = {
 // Original centered CTA panel layout, restyled: Deep-Emerald ground with the
 // approved emerald wash, oat type, single emerald button.
 export function DealMakerCta({ offering }: Props) {
-  const [gateOpen, setGateOpen] = useState(false);
+  const [noticeOpen, setNoticeOpen] = useState(false);
 
   const label =
     offering === "reg-d"
@@ -37,13 +37,12 @@ export function DealMakerCta({ offering }: Props) {
         <p className="mx-auto max-w-xl font-display text-sm font-light leading-body text-oat/80">
           The full investment process (verification, subscription documents, and
           funding) is completed through DealMaker, a registered broker-dealer.
-          Your jurisdiction is confirmed before you continue.
         </p>
 
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => setGateOpen(true)}
+            onClick={() => setNoticeOpen(true)}
             className="lmm-btn-primary w-full shadow-card md:w-auto"
           >
             <span>{label}</span>
@@ -52,10 +51,9 @@ export function DealMakerCta({ offering }: Props) {
         </div>
       </div>
 
-      <JurisdictionGate
-        offering={offering}
-        open={gateOpen}
-        onClose={() => setGateOpen(false)}
+      <PortalNotice
+        open={noticeOpen}
+        onClose={() => setNoticeOpen(false)}
       />
     </section>
   );
